@@ -1,0 +1,34 @@
+button{
+    background-color: #d42222;
+    border: none;
+    padding: 15px 32px;
+    text-align: center;
+    color: #f0e9e9;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 15px;
+    margin: 4px 2px;
+    cursor: pointer;
+    transition: .3s;
+    border-radius: 9px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin: 0 0 0 20px;
+
+}
+button:hover {
+    background-color: #030303;
+    color: #d42222;
+
+}
+button span {
+      transform: scale3d(1, 1, .5);
+    font-size: 20px;
+        transition: .3s;
+
+}
+button:hover span{
+    font-size: 30px;
+    transform: scale3d(1.1, 1.1, 1);
+
+}

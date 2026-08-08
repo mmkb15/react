@@ -1,0 +1,11 @@
+26-07-2026 = State, props
+27-07-2026 = useEffect, interface
+28-07-2026 = routing(ReactRouterV8)
+29-07-2026 = templating
+30-07-2026 = templating, routing(ReactRouterV8)
+01-08-2026 = templating(UserManage & UserCreate)
+02-08-2026 = Dynamic routing, Database Design, templating(login,404,useredit, userdetails pages)
+03-08-2026 = Form Data Handling, Postman introduction with fake api
+04-08-2026 = Axios, Getting data from fake api using Axios
+06-08-2026 = put, post , delete method with Axios and fake api
+08-08-2026 = build and deploy, calling another api with firest called api data
