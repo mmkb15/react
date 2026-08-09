@@ -1,7 +1,7 @@
+import { Outlet } from "react-router"
 import Footer from "./views/layout/Footer"
 import Navbar from "./views/layout/Navbar"
 import Sidebar from "./views/layout/Sidebar"
-import Dashboard from "./views/pages/Dashboard"
 
 function App() {
 
@@ -25,7 +25,7 @@ function App() {
           {/* <!-- Content wrapper --> */}
           <div className="content-wrapper">
             {/* <!-- Content --> */}
-            <Dashboard />
+            <Outlet />
             {/* <!-- / Content --> */}
 
             {/* <!-- Footer --> */}

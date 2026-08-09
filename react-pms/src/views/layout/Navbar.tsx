@@ -438,7 +438,7 @@ function Navbar() {
                     </li>
                     <li>
                       <div className="d-grid px-2 pt-2 pb-1">
-                        <Link className="btn btn-sm btn-danger d-flex" to="auth-login-cover.html" target="_blank">
+                        <Link className="btn btn-sm btn-danger d-flex" to="/login">
                           <small className="align-middle">Logout</small>
                           <i className="icon-base ti tabler-logout ms-2 icon-14px"></i>
                         </Link>
