@@ -139,7 +139,7 @@ function Navbar() {
                         <div className="d-flex align-items-center h6 mb-0">
                           <span className="badge bg-label-primary me-2">8 New</span>
                           <Link
-                            to="/"
+                            to="/   "
                             className="dropdown-notifications-all p-2 btn btn-icon"
                             data-bs-toggle="tooltip"
                             data-bs-placement="top"
@@ -360,7 +360,7 @@ function Navbar() {
                     </li>
                     <li className="border-top">
                       <div className="d-grid p-4">
-                        <Link className="btn btn-primary btn-sm d-flex" to="/">
+                        <Link className="btn btn-primary btn-sm d-flex" to="/notification">
                           <small className="align-middle">View all notifications</small>
                         </Link>
                       </div>

@@ -1,8 +1,26 @@
 import { Link, useParams } from "react-router";
 import PageHeading from "../../../components/PageHeading.tsx";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { defaultUser, type User } from "../../../interfaces/User.ts";
 
 function UserDetails() {
     const {id} = useParams();
+    const [user, setUser] = useState<User>(defaultUser);
+    const getUser = () => {
+      axios
+        .get("http://localhost/react-project-api/api/users-details?id="+id)
+        .then((res) => {
+          // console.log(res.data);
+          setUser(res.data);
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+    }
+    useEffect(() => {
+      getUser();
+    },[])
   return (
     <>
       <main className="dashboard-content">
@@ -28,29 +46,16 @@ function UserDetails() {
                 <div className="profile-hero">
                   <img
                     className="avatar-img avatar-xl profile-photo mb-3"
-                    src="https://i.pravatar.cc/100"
+                    src={`https://i.pravatar.cc/${user.id? user.id + 100 : 100}`} 
                     alt="Asia R."
                   />
-                  <h2 className="h5 mb-1">Asia R.</h2>
-                  <p className="text-muted mb-3">Senior Administrator</p>
-                  <span className="badge text-bg-success">Active Account</span>
+                  <h2 className="h5 mb-1">{user.name}</h2>
+                  <p className="text-muted mb-3">{user.role}</p>
                 </div>
                 <div className="info-list mt-4 text-start">
                   <div>
                     <span>Email</span>
-                    <strong>sarah@example.com</strong>
-                  </div>
-                  <div>
-                    <span>Phone</span>
-                    <strong>+1 555 0184</strong>
-                  </div>
-                  <div>
-                    <span>Team</span>
-                    <strong>Operations</strong>
-                  </div>
-                  <div>
-                    <span>Location</span>
-                    <strong>New York, USA</strong>
+                    <strong>{user.email}</strong>
                   </div>
                 </div>
               </div>

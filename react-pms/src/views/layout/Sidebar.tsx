@@ -5,11 +5,11 @@ import { Link } from "react-router";
 
 function Sidebar() {
     
-    const [userOpen, setUserOpen] = useState(true);
     // const [postOpen, setPostOpen] = useState(true);
     
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
+    const [taskOpen, setTaskOpen] = useState(false);
 
     useEffect(() => {
         // Main Work
@@ -105,32 +105,75 @@ function Sidebar() {
                             <div>Dashboard</div>
                         </Link>
                     </li>
-                    {/* <!-- User --> */}
-                    <li className={`menu-item ${userOpen ? "active open" : ""}`}>
-                    <a 
-                        href="#"
-                        className="menu-link menu-toggle"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            setUserOpen(!userOpen)
-                        }}
-                    >
-                    <i className="menu-icon icon-base ti tabler-smart-home"></i>
-                    <div data-i18n="users">users</div>
-                    </a>
+                    {/* <!-- Projects --> */}
+                    <li className="menu-item">
+                        <Link to="/project" className="menu-link">
+                            <i className="menu-icon icon-base ti tabler-briefcase"></i>
+                            <div>Projects</div>
+                        </Link>
+                    </li>
+                    {/* <!-- Tasks --> */}
+                    <li className={`menu-item ${taskOpen ? "active open" : ""}`}>
+                        <a
+                            href="#"
+                            className="menu-link menu-toggle"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setTaskOpen(!taskOpen)
+                            }}
+                        >
+                            <i className="menu-icon icon-base ti tabler-checklist"></i>
+                            <div>Tasks</div>
+                        </a>
                         <ul className="menu-sub">
-                            <li className="menu-item active">
-                            <Link to="/user" className="menu-link">
-                                <div>User Manage</div>
-                            </Link>
+                            <li className="menu-item">
+                                <Link to="/task" className="menu-link">
+                                    <div>Task List</div>
+                                </Link>
                             </li>
                             <li className="menu-item">
-                            <Link to="/user-details" className="menu-link">
-                                <div>User Details</div>
-                            </Link>
+                                <Link to="/task/board" className="menu-link">
+                                    <div>Task Board</div>
+                                </Link>
                             </li>
                         </ul>
                     </li>
+                    {/* <!-- Members --> */}
+                    <li className="menu-item">
+                        <Link to="/member" className="menu-link">
+                            <i className="menu-icon icon-base ti tabler-users"></i>
+                            <div>Members</div>
+                        </Link>
+                    </li>
+                    {/* <!-- Calendar --> */}
+                    <li className="menu-item">
+                        <Link to="/calendar" className="menu-link">
+                            <i className="menu-icon icon-base ti tabler-calendar"></i>
+                            <div>Calendar</div>
+                        </Link>
+                    </li>
+                    {/* <!-- Notifications --> */}
+                    <li className="menu-item">
+                        <Link to="/notification" className="menu-link">
+                            <i className="menu-icon icon-base ti tabler-bell"></i>
+                            <div>Notifications</div>
+                        </Link>
+                    </li>
+                    {/* <!-- Reports --> */}
+                    <li className="menu-item">
+                        <Link to="/report" className="menu-link">
+                            <i className="menu-icon icon-base ti tabler-chart-bar"></i>
+                            <div>Reports</div>
+                        </Link>
+                    </li>
+                    {/* <!-- Settings --> */}
+                    <li className="menu-item">
+                        <Link to="/settings/profile" className="menu-link">
+                            <i className="menu-icon icon-base ti tabler-settings"></i>
+                            <div>Settings</div>
+                        </Link>
+                    </li>
+
                     
                     {/* <!-- Post -Demo for reUse --> */}
                     {/* <li className={`menu-item ${postOpen ? "active open" : ""}`}>
