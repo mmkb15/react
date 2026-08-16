@@ -10,4 +10,5 @@ export const defaultUser: User = {
     name: "",
     email: "",
     role_id: 0,
+    password: ""
 };

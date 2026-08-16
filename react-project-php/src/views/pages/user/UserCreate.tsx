@@ -1,9 +1,11 @@
 import { Link } from "react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PageHeading from "../../../components/PageHeading.tsx";
 import { defaultUser } from "../../../interfaces/User.ts";
 import type { User } from "../../../interfaces/User.ts";
 import axios from "axios";
+import type { Role } from "../../../interfaces/Role.ts";
+import { api, baseApiUrl } from "../../../config.tsx";
 
 function UserCreate() {
   const [user, setUser] = useState<User>(defaultUser);
@@ -13,12 +15,33 @@ function UserCreate() {
     password: "",
     role_id: "",
   });
+
+  const[roles, setRoles] = useState<Role[]>([])
+
+  // const [msg, setMsg] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
   // let name = "Mina";
   // name = "Raju";
   // name = "Mithu";
   // useEffect(() => {
   //   console.log(user);
   // }, [user]);
+
+  function getRoles(){
+    axios
+    .get(baseApiUrl + "roles")
+    .then((res) => {
+      console.log(res.data);
+      setRoles(res.data);
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+  }
+  useEffect(() => {
+    getRoles();
+  }, [])
+
   function handleSubmit(){
     let newErrors: any = {};
     if(user.name == ""){
@@ -45,21 +68,19 @@ function UserCreate() {
       // alert("Submited");
       // console.log(user);
 
-      axios
-      .post(
-        "http://localhost/react-project-api/api/users-create", 
-        user,
-        {
-          headers: {
-            "Content-Type" : "application/json",
-          },
-        }
-      )
+      api
+      .post(baseApiUrl+"users-create", user)
       .then(res=>{
         console.log(res);
+        if(res.status == 200 || res.status == 201){
+            // setMsg(true);
+            setMsg("success");
+            setUser(defaultUser);
+        }
       })
       .catch(err=>{
         console.log(err);
+        setMsg("error");
       })
 
     }
@@ -82,6 +103,56 @@ function UserCreate() {
 
           <section className="row g-3">
             <div className="col-12">
+{/* 
+              { msg === "success" && (
+                <div className="alert alert-info alert-dismissible fade show mb-3" role="alert">
+                 Data <strong>save</strong>  successfully.
+                  <button
+                    type="button" 
+                    className="btn-close" 
+                    data-bs-dismiss="alert" 
+                    aria-label="Close"
+                    onClick={() => setMsg(null)}
+                   ></button>
+                </div>
+              )}
+
+              { msg === "error" && (
+                <div className="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                 Something went wrong!
+                  <button
+                    type="button" 
+                    className="btn-close" 
+                    data-bs-dismiss="alert" 
+                    aria-label="Close"
+                    onClick={() => setMsg(null)}
+                   ></button>
+                </div>
+              )} */}
+
+
+                {msg && (
+                    <div
+                        className={`alert ${
+                            msg === "success" ? "alert-success" : "alert-danger"
+                        } alert-dismissible fade show mb-3`}
+                        role="alert"
+                    >
+                        {msg === "success"
+                            ? "Data saved successfully."
+                            : "Something went wrong!"
+                        }
+
+                        <button
+                            type="button"
+                            className="btn-close"
+                            onClick={() => setMsg(null)}
+                        />
+                    </div>
+                )}
+
+
+
               <form className="panel needs-validation">
                 <div className="row g-3">
                   <div className="col-md-6">
@@ -116,11 +187,20 @@ function UserCreate() {
                     </label>
                     <select className="form-select" id="role" value={user.role_id} 
                     onChange={(e)=>setUser({...user,role_id: Number(e.target.value)})}>
-                      <option value={0} disabled>Choose role...</option>
-                      <option value={1}>Admin</option>
-                      <option value={2}>Manager</option>
-                      <option value={3}>Editor</option>
-                      <option value={4}>Viewer</option>
+                      <option value={0} disabled>
+                        Choose role...
+                      </option>
+
+                      {
+                        roles.map(item=>(
+                          <option key={item.id} value={item.id} >
+                            {item.name}
+                          </option>
+                        ))
+                      }
+
+
+
                     </select>
                     <small className="text-danger">{errors.role_id}</small>
                   </div>
