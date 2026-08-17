@@ -28,7 +28,7 @@ function Register() {
                     <h4 className="mb-1">Adventure starts here 🚀</h4>
                     <p className="mb-6">Make your app management easy and fun!</p>
 
-                    <form id="formAuthentication" className="mb-6 fv-plugins-bootstrap5 fv-plugins-framework" action="index.html" method="GET" novalidate="novalidate">
+                    <form id="formAuthentication" className="mb-6 fv-plugins-bootstrap5 fv-plugins-framework" action="index.html" method="GET">
                         <div className="mb-6 form-control-validation fv-plugins-icon-container">
                         <label htmlFor="username" className="form-label">Username</label>
                         <input type="text" className="form-control" id="username" name="username" placeholder="Enter your username" autoFocus/>

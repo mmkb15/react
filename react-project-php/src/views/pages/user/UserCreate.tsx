@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import PageHeading from "../../../components/PageHeading.tsx";
 import { defaultUser } from "../../../interfaces/User.ts";
 import type { User } from "../../../interfaces/User.ts";
-import axios from "axios";
+// import axios from "axios";
 import type { Role } from "../../../interfaces/Role.ts";
-import { api, baseApiUrl } from "../../../config.tsx";
+import { api/* , baseApiUrl */ } from "../../../config.tsx";
 
 function UserCreate() {
   const [user, setUser] = useState<User>(defaultUser);
@@ -28,8 +28,8 @@ function UserCreate() {
   // }, [user]);
 
   function getRoles(){
-    axios
-    .get(baseApiUrl + "roles")
+    api
+    .get("roles")
     .then((res) => {
       console.log(res.data);
       setRoles(res.data);
@@ -69,7 +69,7 @@ function UserCreate() {
       // console.log(user);
 
       api
-      .post(baseApiUrl+"users-create", user)
+      .post("users-create", user)
       .then(res=>{
         console.log(res);
         if(res.status == 200 || res.status == 201){

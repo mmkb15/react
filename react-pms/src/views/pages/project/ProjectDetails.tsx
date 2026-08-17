@@ -1,5 +1,8 @@
+import { useEffect, useState } from "react"
 import { Link, useParams } from "react-router"
-import { dummyProjects, type Project } from "../../../interfaces/Project"
+import axios from "axios"
+import { defaultProject, type Project } from "../../../interfaces/Project"
+import { API_BASE_URL } from "../../../config"
 
 const statusBadge: Record<Project["status"], string> = {
     Active: "primary",
@@ -9,22 +12,29 @@ const statusBadge: Record<Project["status"], string> = {
     "On Hold": "secondary",
 }
 
-const phaseBadge: Record<Project["phase"], string> = {
-    Initiation: "secondary",
-    Planning: "info",
-    Execution: "primary",
-    "Monitoring & Control": "warning",
-    Closure: "success",
-}
-
-const formatMoney = (value: number) => `${value.toLocaleString("en-US")}`;
-
 function ProjectDetails() {
 
     const { id } = useParams();
-    const project = dummyProjects.find((p) => String(p.id) === id);
+    const [project, setProject] = useState<Project>(defaultProject);
+    const [notFound, setNotFound] = useState(false);
 
-    if (!project) {
+    function getProject() {
+        axios
+            .get(API_BASE_URL + "/projects/" + id)
+            .then((res) => {
+                setProject(res.data);
+            })
+            .catch((err) => {
+                console.log(err);
+                setNotFound(true);
+            });
+    }
+
+    useEffect(() => {
+        getProject();
+    }, []);
+
+    if (notFound) {
         return (
             <div className="container-xxl flex-grow-1 container-p-y">
                 <div className="card">
@@ -42,11 +52,6 @@ function ProjectDetails() {
         ? Math.round((project.completedTasks / project.totalTasks) * 100)
         : 0;
 
-    const budgetUsedPercent = project.budgetCost
-        ? Math.min(100, Math.round((project.actualCost / project.budgetCost) * 100))
-        : 0;
-    const isOverBudget = project.actualCost > project.budgetCost;
-
     return (
         <>
             <div className="container-xxl flex-grow-1 container-p-y">
@@ -59,10 +64,16 @@ function ProjectDetails() {
                             <p className="mb-0 text-body-secondary">Client: {project.client}</p>
                         </div>
                     </div>
-                    <Link to="/project" className="btn btn-label-secondary">
-                        <i className="icon-base ti tabler-arrow-left me-1"></i>
-                        Back to Projects
-                    </Link>
+                    <div className="d-flex gap-2">
+                        <Link to={`/project-edit/${id}`} className="btn btn-primary">
+                            <i className="icon-base ti tabler-pencil me-1"></i>
+                            Edit Project
+                        </Link>
+                        <Link to="/project" className="btn btn-label-secondary">
+                            <i className="icon-base ti tabler-arrow-left me-1"></i>
+                            Back to Projects
+                        </Link>
+                    </div>
                 </div>
 
                 <div className="row g-4">
@@ -74,79 +85,24 @@ function ProjectDetails() {
                                 <p className="mb-4">{project.description || "No description added yet."}</p>
                                 <div className="row g-4">
                                     <div className="col-6 col-md-3">
-                                        <p className="text-body-secondary mb-1">Category</p>
-                                        <p className="fw-medium mb-0">{project.category}</p>
-                                    </div>
-                                    <div className="col-6 col-md-3">
-                                        <p className="text-body-secondary mb-1">Phase</p>
-                                        <span className={`badge bg-label-${phaseBadge[project.phase]}`}>
-                                            {project.phase}
-                                        </span>
-                                    </div>
-                                    <div className="col-6 col-md-3">
                                         <p className="text-body-secondary mb-1">Status</p>
                                         <span className={`badge bg-label-${statusBadge[project.status]}`}>
                                             {project.status}
                                         </span>
                                     </div>
                                     <div className="col-6 col-md-3">
+                                        <p className="text-body-secondary mb-1">Deadline</p>
+                                        <p className="fw-medium mb-0">{project.deadline || "—"}</p>
+                                    </div>
+                                    <div className="col-6 col-md-3">
                                         <p className="text-body-secondary mb-1">Total Tasks</p>
-                                        <p className="fw-medium mb-0">{project.completedTasks} / {project.totalTasks} done</p>
+                                        <p className="fw-medium mb-0">{project.totalTasks}</p>
+                                    </div>
+                                    <div className="col-6 col-md-3">
+                                        <p className="text-body-secondary mb-1">Completed</p>
+                                        <p className="fw-medium mb-0">{project.completedTasks}</p>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        {/* Timeline: planned vs actual */}
-                        <div className="card mb-4">
-                            <h5 className="card-header">Timeline</h5>
-                            <div className="card-body">
-                                <div className="table-responsive">
-                                    <table className="table table-borderless m-0">
-                                        <thead>
-                                            <tr>
-                                                <th></th>
-                                                <th>Expected</th>
-                                                <th>Actual</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td className="text-body-secondary">Start Date</td>
-                                                <td className="fw-medium">{project.expectedStartDate || "—"}</td>
-                                                <td>
-                                                    {project.actualStartDate || (
-                                                        <span className="badge bg-label-secondary">Not started</span>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td className="text-body-secondary">End Date</td>
-                                                <td className="fw-medium">{project.expectedEndDate || "—"}</td>
-                                                <td>
-                                                    {project.actualEndDate || (
-                                                        <span className="badge bg-label-secondary">Not finished</span>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                {project.actualEndDate && project.expectedEndDate && (
-                                    <p className="mb-0 mt-2">
-                                        {project.actualEndDate <= project.expectedEndDate ? (
-                                            <span className="text-success">
-                                                <i className="icon-base ti tabler-circle-check me-1"></i>
-                                                Finished on or before the expected date.
-                                            </span>
-                                        ) : (
-                                            <span className="text-danger">
-                                                <i className="icon-base ti tabler-alert-circle me-1"></i>
-                                                Finished later than expected.
-                                            </span>
-                                        )}
-                                    </p>
-                                )}
                             </div>
                         </div>
 
@@ -168,57 +124,16 @@ function ProjectDetails() {
                                         aria-valuemax={100}
                                     ></div>
                                 </div>
-                                <p className="text-body-secondary mt-3 mb-0">
-                                    Detailed task board (Kanban / List) is available from the Tasks menu.
-                                </p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Right column: Budget + Team */}
+                    {/* Team */}
                     <div className="col-12 col-lg-4">
-                        {/* Budget */}
-                        <div className="card mb-4">
-                            <h5 className="card-header">Budget</h5>
-                            <div className="card-body">
-                                <div className="d-flex justify-content-between mb-1">
-                                    <span className="text-body-secondary">Budget Cost</span>
-                                    <span className="fw-medium">{formatMoney(project.budgetCost)}</span>
-                                </div>
-                                <div className="d-flex justify-content-between mb-2">
-                                    <span className="text-body-secondary">Actual Cost</span>
-                                    <span className={`fw-medium ${isOverBudget ? "text-danger" : ""}`}>
-                                        {formatMoney(project.actualCost)}
-                                    </span>
-                                </div>
-                                <div className="progress mb-2" style={{ height: "8px" }}>
-                                    <div
-                                        className={`progress-bar ${isOverBudget ? "bg-danger" : "bg-success"}`}
-                                        role="progressbar"
-                                        style={{ width: `${budgetUsedPercent}%` }}
-                                        aria-valuenow={budgetUsedPercent}
-                                        aria-valuemin={0}
-                                        aria-valuemax={100}
-                                    ></div>
-                                </div>
-                                {isOverBudget ? (
-                                    <p className="text-danger mb-0">
-                                        <i className="icon-base ti tabler-alert-triangle me-1"></i>
-                                        Over budget by {formatMoney(project.actualCost - project.budgetCost)}
-                                    </p>
-                                ) : (
-                                    <p className="text-body-secondary mb-0">
-                                        {formatMoney(project.budgetCost - project.actualCost)} remaining ({budgetUsedPercent}% used)
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Team */}
                         <div className="card">
                             <h5 className="card-header">Team Members</h5>
                             <ul className="list-group list-group-flush">
-                                {project.members.map((member) => (
+                                {project.members?.map((member) => (
                                     <li key={member.name} className="list-group-item d-flex align-items-center">
                                         <div className="avatar avatar-sm me-3">
                                             <img
@@ -230,7 +145,7 @@ function ProjectDetails() {
                                         <span>{member.name}</span>
                                     </li>
                                 ))}
-                                {project.members.length === 0 && (
+                                {(!project.members || project.members.length === 0) && (
                                     <li className="list-group-item text-body-secondary">No members assigned yet.</li>
                                 )}
                             </ul>

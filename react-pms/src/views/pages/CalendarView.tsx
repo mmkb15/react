@@ -28,9 +28,9 @@ function CalendarView() {
         });
 
         dummyProjects.forEach((project) => {
-            if (!project.expectedEndDate) return;
-            if (!map[project.expectedEndDate]) map[project.expectedEndDate] = [];
-            map[project.expectedEndDate].push({ label: `Deadline: ${project.name}`, color: "danger" });
+            if (!project.deadline) return;
+            if (!map[project.deadline]) map[project.deadline] = [];
+            map[project.deadline].push({ label: `Deadline: ${project.name}`, color: "danger" });
         });
 
         return map;

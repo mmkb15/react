@@ -17,12 +17,6 @@ function Reports() {
     const completedTasks = dummyTasks.filter((t) => t.status === "Done").length;
     const overallCompletion = totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-    const totalBudget = dummyProjects.reduce((sum, p) => sum + p.budgetCost, 0);
-    const totalActualCost = dummyProjects.reduce((sum, p) => sum + p.actualCost, 0);
-    const budgetUsedPercent = totalBudget ? Math.min(100, Math.round((totalActualCost / totalBudget) * 100)) : 0;
-    const isOverBudget = totalActualCost > totalBudget;
-    const formatMoney = (value: number) => `${value.toLocaleString("en-US")}`;
-
     const tasksByStatus = taskStatuses.map((status) => ({
         status,
         count: dummyTasks.filter((t) => t.status === status).length,
@@ -146,43 +140,6 @@ function Reports() {
                                     </div>
                                 );
                             })}
-                        </div>
-                    </div>
-
-                    {/* Budget overview */}
-                    <div className="card mt-4">
-                        <h5 className="card-header">Budget Overview (All Projects)</h5>
-                        <div className="card-body">
-                            <div className="d-flex justify-content-between mb-1">
-                                <span className="text-body-secondary">Total Budget</span>
-                                <span className="fw-medium">{formatMoney(totalBudget)}</span>
-                            </div>
-                            <div className="d-flex justify-content-between mb-2">
-                                <span className="text-body-secondary">Total Actual Cost</span>
-                                <span className={`fw-medium ${isOverBudget ? "text-danger" : ""}`}>
-                                    {formatMoney(totalActualCost)}
-                                </span>
-                            </div>
-                            <div className="progress mb-2" style={{ height: "8px" }}>
-                                <div
-                                    className={`progress-bar ${isOverBudget ? "bg-danger" : "bg-success"}`}
-                                    role="progressbar"
-                                    style={{ width: `${budgetUsedPercent}%` }}
-                                    aria-valuenow={budgetUsedPercent}
-                                    aria-valuemin={0}
-                                    aria-valuemax={100}
-                                ></div>
-                            </div>
-                            {isOverBudget ? (
-                                <p className="text-danger mb-0">
-                                    <i className="icon-base ti tabler-alert-triangle me-1"></i>
-                                    Over budget by {formatMoney(totalActualCost - totalBudget)}
-                                </p>
-                            ) : (
-                                <p className="text-body-secondary mb-0">
-                                    {formatMoney(totalBudget - totalActualCost)} remaining ({budgetUsedPercent}% used)
-                                </p>
-                            )}
                         </div>
                     </div>
                 </div>

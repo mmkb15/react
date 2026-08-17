@@ -1,242 +1,148 @@
 import { useState } from "react"
-import { defaultProject, projectCategories, projectPhases, type Project } from "../../../interfaces/Project"
+import { Link, useNavigate } from "react-router"
+import axios from "axios"
+import { defaultProject, type Project } from "../../../interfaces/Project"
+import { API_BASE_URL } from "../../../config"
 
-function ProjectCreate({
-    project,
-    onClose,
-    onSave,
-}: {
-    project: Project | null;
-    onClose: () => void;
-    onSave: (project: Project) => void;
-}) {
+function ProjectCreate() {
 
-    const [form, setForm] = useState<Project>(project ?? defaultProject);
+    const navigate = useNavigate();
+    const [form, setForm] = useState<Project>(defaultProject);
+    const [msg, setMsg] = useState("");
+    const [errors, setErrors] = useState({ name: "", client: "" });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value, type } = e.target;
-        setForm((prev) => ({
-            ...prev,
-            [name]: type === "number" ? Number(value) : value,
-        }));
+        const { name, value } = e.target;
+        setForm((prev) => ({ ...prev, [name]: value }));
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onSave(form);
+    function handleSubmit() {
+        // Manually check kore niচ্ছি, built-in validation library use korchi na
+        const newErrors = { name: "", client: "" };
+        if (form.name === "") newErrors.name = "Project name is required";
+        if (form.client === "") newErrors.client = "Client name is required";
+        setErrors(newErrors);
+
+        if (newErrors.name !== "" || newErrors.client !== "") return;
+
+        axios
+            .post(API_BASE_URL + "/projects", form, {
+                headers: { "Content-Type": "application/json" },
+            })
+            .then((res) => {
+                console.log(res);
+                setMsg("🎉 Project created successfully!");
+                navigate("/project");
+            })
+            .catch((err) => {
+                console.log(err);
+                setMsg("⚠️ Something went wrong. Project create failed!");
+            });
     }
 
     return (
         <>
-            <div className="modal modal-add-new-address show d-block" tabIndex={-1}>
-                <div className="modal-dialog modal-dialog-centered modal-lg">
-                    <div className="modal-content">
-                        <div className="modal-body">
-                            <button
-                                type="button"
-                                className="btn-close"
-                                onClick={onClose}
-                                aria-label="Close"
-                            ></button>
-                            <div className="text-center mb-4">
-                                <h4 className="mb-1">{project ? "Edit Project" : "Add New Project"}</h4>
-                                <p className="text-body-secondary">
-                                    {project ? "Update the project details below." : "Fill in the details to create a new project."}
-                                </p>
-                            </div>
-                            <form onSubmit={handleSubmit}>
-                                <div className="row g-4">
+            <div className="container-xxl flex-grow-1 container-p-y">
 
-                                    {/* Basic info */}
-                                    <div className="col-12">
-                                        <h6 className="text-uppercase text-body-secondary mb-0">Basic Information</h6>
-                                        <hr className="mt-2 mb-0" />
-                                    </div>
-                                    <div className="col-12 col-md-6">
-                                        <label className="form-label" htmlFor="name">Project Name</label>
-                                        <input
-                                            type="text"
-                                            id="name"
-                                            name="name"
-                                            className="form-control"
-                                            placeholder="e.g. Website Redesign"
-                                            value={form.name}
-                                            onChange={handleChange}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="col-12 col-md-6">
-                                        <label className="form-label" htmlFor="client">Client</label>
-                                        <input
-                                            type="text"
-                                            id="client"
-                                            name="client"
-                                            className="form-control"
-                                            placeholder="Client name"
-                                            value={form.client}
-                                            onChange={handleChange}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="col-12 col-md-6">
-                                        <label className="form-label" htmlFor="category">Project Category</label>
-                                        <select
-                                            id="category"
-                                            name="category"
-                                            className="form-select"
-                                            value={form.category}
-                                            onChange={handleChange}
-                                        >
-                                            {projectCategories.map((category) => (
-                                                <option key={category} value={category}>{category}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="col-12 col-md-6">
-                                        <label className="form-label" htmlFor="phase">Project Phase</label>
-                                        <select
-                                            id="phase"
-                                            name="phase"
-                                            className="form-select"
-                                            value={form.phase}
-                                            onChange={handleChange}
-                                        >
-                                            {projectPhases.map((phase) => (
-                                                <option key={phase} value={phase}>{phase}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="col-12">
-                                        <label className="form-label" htmlFor="status">Status</label>
-                                        <select
-                                            id="status"
-                                            name="status"
-                                            className="form-select"
-                                            value={form.status}
-                                            onChange={handleChange}
-                                        >
-                                            <option value="Pending">Pending</option>
-                                            <option value="Active">Active</option>
-                                            <option value="Scheduled">Scheduled</option>
-                                            <option value="On Hold">On Hold</option>
-                                            <option value="Completed">Completed</option>
-                                        </select>
-                                    </div>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 className="mb-1">Add New Project</h4>
+                        <p className="mb-0 text-body-secondary">Fill in the details to create a new project.</p>
+                    </div>
+                    <Link to="/project" className="btn btn-label-secondary">
+                        <i className="icon-base ti tabler-arrow-left me-1"></i>
+                        Back to Projects
+                    </Link>
+                </div>
 
-                                    {/* Timeline */}
-                                    <div className="col-12 mt-4">
-                                        <h6 className="text-uppercase text-body-secondary mb-0">Timeline</h6>
-                                        <hr className="mt-2 mb-0" />
-                                    </div>
-                                    <div className="col-12 col-md-6">
-                                        <label className="form-label" htmlFor="expectedStartDate">Expected Starting Time</label>
-                                        <input
-                                            type="date"
-                                            id="expectedStartDate"
-                                            name="expectedStartDate"
-                                            className="form-control"
-                                            value={form.expectedStartDate}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    <div className="col-12 col-md-6">
-                                        <label className="form-label" htmlFor="expectedEndDate">Expected Ending Time</label>
-                                        <input
-                                            type="date"
-                                            id="expectedEndDate"
-                                            name="expectedEndDate"
-                                            className="form-control"
-                                            value={form.expectedEndDate}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    <div className="col-12 col-md-6">
-                                        <label className="form-label" htmlFor="actualStartDate">Actual Starting Time</label>
-                                        <input
-                                            type="date"
-                                            id="actualStartDate"
-                                            name="actualStartDate"
-                                            className="form-control"
-                                            value={form.actualStartDate}
-                                            onChange={handleChange}
-                                        />
-                                        <div className="form-text">Leave empty if the project hasn't actually started yet.</div>
-                                    </div>
-                                    <div className="col-12 col-md-6">
-                                        <label className="form-label" htmlFor="actualEndDate">Actual Ending Time</label>
-                                        <input
-                                            type="date"
-                                            id="actualEndDate"
-                                            name="actualEndDate"
-                                            className="form-control"
-                                            value={form.actualEndDate}
-                                            onChange={handleChange}
-                                        />
-                                        <div className="form-text">Leave empty if the project hasn't actually finished yet.</div>
-                                    </div>
+                {msg !== "" && (
+                    <div className="alert alert-info" role="alert">
+                        {msg}
+                    </div>
+                )}
 
-                                    {/* Budget */}
-                                    <div className="col-12 mt-4">
-                                        <h6 className="text-uppercase text-body-secondary mb-0">Budget</h6>
-                                        <hr className="mt-2 mb-0" />
-                                    </div>
-                                    <div className="col-12 col-md-6">
-                                        <label className="form-label" htmlFor="budgetCost">Budget Cost ($)</label>
-                                        <input
-                                            type="number"
-                                            id="budgetCost"
-                                            name="budgetCost"
-                                            className="form-control"
-                                            placeholder="0"
-                                            min={0}
-                                            value={form.budgetCost}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    <div className="col-12 col-md-6">
-                                        <label className="form-label" htmlFor="actualCost">Actual Cost (৳)</label>
-                                        <input
-                                            type="number"
-                                            id="actualCost"
-                                            name="actualCost"
-                                            className="form-control"
-                                            placeholder="0"
-                                            min={0}
-                                            value={form.actualCost}
-                                            onChange={handleChange}
-                                        />
-                                        <div className="form-text">Amount spent so far on this project.</div>
-                                    </div>
-
-                                    {/* Description */}
-                                    <div className="col-12 mt-4">
-                                        <label className="form-label" htmlFor="description">Description</label>
-                                        <textarea
-                                            id="description"
-                                            name="description"
-                                            className="form-control"
-                                            rows={3}
-                                            placeholder="Short project description"
-                                            value={form.description}
-                                            onChange={handleChange}
-                                        ></textarea>
-                                    </div>
-
-                                    <div className="col-12 text-center mt-4">
-                                        <button type="submit" className="btn btn-primary me-2">
-                                            {project ? "Save Changes" : "Create Project"}
-                                        </button>
-                                        <button type="button" className="btn btn-label-secondary" onClick={onClose}>
-                                            Cancel
-                                        </button>
-                                    </div>
+                <div className="card">
+                    <div className="card-body">
+                        <form>
+                            <div className="row g-4">
+                                <div className="col-12">
+                                    <label className="form-label" htmlFor="name">Project Name</label>
+                                    <input
+                                        type="text"
+                                        id="name"
+                                        name="name"
+                                        className="form-control"
+                                        placeholder="e.g. Website Redesign"
+                                        value={form.name}
+                                        onChange={handleChange}
+                                    />
+                                    <small className="text-danger">{errors.name}</small>
                                 </div>
-                            </form>
-                        </div>
+                                <div className="col-12 col-md-6">
+                                    <label className="form-label" htmlFor="client">Client</label>
+                                    <input
+                                        type="text"
+                                        id="client"
+                                        name="client"
+                                        className="form-control"
+                                        placeholder="Client name"
+                                        value={form.client}
+                                        onChange={handleChange}
+                                    />
+                                    <small className="text-danger">{errors.client}</small>
+                                </div>
+                                <div className="col-12 col-md-6">
+                                    <label className="form-label" htmlFor="deadline">Deadline</label>
+                                    <input
+                                        type="date"
+                                        id="deadline"
+                                        name="deadline"
+                                        className="form-control"
+                                        value={form.deadline}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                                <div className="col-12">
+                                    <label className="form-label" htmlFor="status">Status</label>
+                                    <select
+                                        id="status"
+                                        name="status"
+                                        className="form-select"
+                                        value={form.status}
+                                        onChange={handleChange}
+                                    >
+                                        <option value="Pending">Pending</option>
+                                        <option value="Active">Active</option>
+                                        <option value="Scheduled">Scheduled</option>
+                                        <option value="On Hold">On Hold</option>
+                                        <option value="Completed">Completed</option>
+                                    </select>
+                                </div>
+                                <div className="col-12">
+                                    <label className="form-label" htmlFor="description">Description</label>
+                                    <textarea
+                                        id="description"
+                                        name="description"
+                                        className="form-control"
+                                        rows={3}
+                                        placeholder="Short project description"
+                                        value={form.description}
+                                        onChange={handleChange}
+                                    ></textarea>
+                                </div>
+                                <div className="col-12 d-flex flex-wrap justify-content-end gap-2 mt-2">
+                                    <button type="button" className="btn btn-label-secondary" onClick={() => setForm(defaultProject)}>
+                                        Cancel
+                                    </button>
+                                    <button type="button" className="btn btn-primary" onClick={handleSubmit}>
+                                        Create Project
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
-            <div className="modal-backdrop fade show"></div>
         </>
     )
 }

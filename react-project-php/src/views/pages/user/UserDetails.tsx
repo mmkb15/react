@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router";
 import PageHeading from "../../../components/PageHeading.tsx";
-import axios from "axios";
+// import axios from "axios";
 import { useEffect, useState } from "react";
 import { defaultUser, type User } from "../../../interfaces/User.ts";
 import { api } from "../../../config.tsx";

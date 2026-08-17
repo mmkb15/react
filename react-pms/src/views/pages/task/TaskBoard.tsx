@@ -1,6 +1,8 @@
-import { useState } from "react"
-import { dummyTasks, taskStatuses, type Task, type TaskStatus } from "../../../interfaces/Task"
-import TaskCreate from "./TaskCreate"
+import { useEffect, useState } from "react"
+import { Link } from "react-router"
+import axios from "axios"
+import { taskStatuses, type Task, type TaskStatus } from "../../../interfaces/Task"
+import { API_BASE_URL } from "../../../config"
 
 const priorityBadge: Record<Task["priority"], string> = {
     Low: "success",
@@ -17,33 +19,33 @@ const columnColor: Record<TaskStatus, string> = {
 
 function TaskBoard() {
 
-    const [tasks, setTasks] = useState<Task[]>(dummyTasks);
-    const [showModal, setShowModal] = useState(false);
-    const [editingTask, setEditingTask] = useState<Task | null>(null);
+    const [tasks, setTasks] = useState<Task[]>([]);
 
-    const handleAddNew = () => {
-        setEditingTask(null);
-        setShowModal(true);
+    function getAllTasks() {
+        axios
+            .get(API_BASE_URL + "/tasks")
+            .then((res) => setTasks(res.data))
+            .catch((err) => console.log(err));
     }
 
-    const handleEdit = (task: Task) => {
-        setEditingTask(task);
-        setShowModal(true);
-    }
+    useEffect(() => {
+        getAllTasks();
+    }, []);
 
-    const handleSave = (task: Task) => {
-        if (task.id) {
-            setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
-        } else {
-            const nextId = Math.max(0, ...tasks.map((t) => t.id ?? 0)) + 1;
-            setTasks((prev) => [...prev, { ...task, id: nextId }]);
-        }
-        setShowModal(false);
-    }
-
+    // Task-take ekta column theke onno column-e move kora (status update, API-te PUT)
     const moveTask = (id: number | undefined, status: TaskStatus) => {
         if (!id) return;
-        setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
+        const task = tasks.find((t) => t.id === id);
+        if (!task) return;
+
+        const updated = { ...task, status };
+        setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+
+        axios
+            .put(API_BASE_URL + "/tasks/" + id, updated, {
+                headers: { "Content-Type": "application/json" },
+            })
+            .catch((err) => console.log(err));
     }
 
     return (
@@ -56,10 +58,10 @@ function TaskBoard() {
                         <p className="mb-0 text-body-secondary">Drag-free Kanban — use the move menu on each card.</p>
                     </div>
                     <div className="d-flex gap-2">
-                        <button type="button" className="btn btn-primary" onClick={handleAddNew}>
+                        <Link to="/task-create" className="btn btn-primary">
                             <i className="icon-base ti tabler-plus me-1"></i>
                             Add New Task
-                        </button>
+                        </Link>
                     </div>
                 </div>
 
@@ -93,13 +95,9 @@ function TaskBoard() {
                                                                 <i className="icon-base ti tabler-dots-vertical"></i>
                                                             </button>
                                                             <div className="dropdown-menu">
-                                                                <a
-                                                                    className="dropdown-item waves-effect"
-                                                                    href="javascript:void(0);"
-                                                                    onClick={() => handleEdit(task)}
-                                                                >
+                                                                <Link className="dropdown-item waves-effect" to={`/task-edit/${task.id}`}>
                                                                     <i className="icon-base ti tabler-pencil me-1"></i> Edit
-                                                                </a>
+                                                                </Link>
                                                                 <h6 className="dropdown-header px-3 pt-2 pb-1 mb-0 text-body-secondary">
                                                                     Move to
                                                                 </h6>
@@ -147,15 +145,7 @@ function TaskBoard() {
                     })}
                 </div>
             </div>
-
-            {showModal && (
-                <TaskCreate
-                    task={editingTask}
-                    onClose={() => setShowModal(false)}
-                    onSave={handleSave}
-                />
-            )}
         </>
     )
 }
-export default TaskBoard        
+export default TaskBoard
