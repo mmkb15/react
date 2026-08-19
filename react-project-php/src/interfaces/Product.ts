@@ -10,6 +10,7 @@ export interface Product{
     quantity            : number;
     point_of_restock    : number;
     active              : boolean;
+    img_path?           : string;
     image?              : File | null;
 
 }
@@ -21,6 +22,7 @@ export const defaultProduct: Product = {
     price               : 0,
     quantity            : 0,
     point_of_restock    : 0,
-    active              : true
+    active              : true,
+    img_path            : "",
 
 }

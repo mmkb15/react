@@ -43,7 +43,7 @@ function ProductCreate() {
   }, [])
 
   function handleSubmit(){
-    console.log(product);
+    // console.log(product);
     let data = new FormData();
     data.append("name", product.name);
     data.append("category_id", product.category_id.toString());
@@ -52,8 +52,23 @@ function ProductCreate() {
     data.append("price", product.price.toString());
     data.append("qty", product.quantity.toString());
     data.append("restock", product.point_of_restock.toString());
-    data.append("name", product.active.toString());
-    if(product.image) data.append("name", product.image);
+    data.append("active", product.active.toString());
+    if(product.image) data.append("image", product.image);
+
+    
+    // console.log(Object.fromEntries(data.entries()));  //for check is data in fontend 
+
+    api.post("product-create", data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      }
+    })
+    .then(res => {
+      console.log(res.data);
+    })
+    .catch(err => {
+      console.log(err);
+    })
     
   }
 
@@ -64,9 +79,9 @@ function ProductCreate() {
           <PageHeading
             icon="person-plus"
             subtitle="Management"
-            title="Add User"
+            title="Add Product"
           >
-            <Link className="btn btn-outline-secondary btn-sm" to="/user">
+            <Link className="btn btn-outline-secondary btn-sm" to="/product">
               <i className="bi bi-arrow-left" aria-hidden="true"></i> Back to
               List
             </Link>
@@ -235,15 +250,19 @@ function ProductCreate() {
                   
                 </div>
                 <div className="d-flex flex-wrap justify-content-end gap-2 mt-4">
-                  <button className="btn btn-outline-secondary" type="reset">
-                    Cancel
+                  <button
+                   className="btn btn-outline-secondary" 
+                   type="reset"
+                   onClick={()=>setProduct(defaultProduct)}
+                   >
+                    Reset
                   </button>
                   <button
                     className="btn btn-primary"
                     type="button"
                     onClick={handleSubmit}
                   >
-                    Create New
+                    Create New Product
                   </button>
                 </div>
               </form>
