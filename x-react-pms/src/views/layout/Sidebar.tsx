@@ -138,13 +138,6 @@ function Sidebar() {
                             </li>
                         </ul>
                     </li>
-                    {/* <!-- Members --> */}
-                    <li className="menu-item">
-                        <Link to="/member" className="menu-link">
-                            <i className="menu-icon icon-base ti tabler-users"></i>
-                            <div>Members</div>
-                        </Link>
-                    </li>
                     {/* <!-- Calendar --> */}
                     <li className="menu-item">
                         <Link to="/calendar" className="menu-link">
@@ -173,7 +166,13 @@ function Sidebar() {
                             <div>Settings</div>
                         </Link>
                     </li>
-
+                    {/* <!-- Members --> */}
+                    <li className="menu-item">
+                        <Link to="/member" className="menu-link">
+                            <i className="menu-icon icon-base ti tabler-users"></i>
+                            <div>Members</div>
+                        </Link>
+                    </li>
                     
                     {/* <!-- Post -Demo for reUse --> */}
                     {/* <li className={`menu-item ${postOpen ? "active open" : ""}`}>

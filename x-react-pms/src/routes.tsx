@@ -9,10 +9,10 @@ import ProjectList from "./views/pages/project/ProjectList.tsx";
 import ProjectDetails from "./views/pages/project/ProjectDetails.tsx";
 import TaskList from "./views/pages/task/TaskList.tsx";
 import TaskBoard from "./views/pages/task/TaskBoard.tsx";
-import CalendarView from "./views/pages/CalendarView.tsx";
-import NotificationList from "./views/pages/NotificationList.tsx";
-import Reports from "./views/pages/Reports.tsx";
-import Profile from "./views/pages/Profile.tsx";
+import CalendarView from "./views/pages/calendar/CalendarView.tsx";
+import NotificationList from "./views/pages/notification/NotificationList.tsx";
+import Reports from "./views/pages/report/Reports.tsx";
+import Profile from "./views/pages/settings/Profile.tsx";
 
 
 export const routes = createBrowserRouter([
@@ -30,8 +30,6 @@ export const routes = createBrowserRouter([
         {path: "/notification", element: <NotificationList />,},
         {path: "/report", element: <Reports />,},
         {path: "/settings/profile", element: <Profile />,},
-
-
     ]
         
   },

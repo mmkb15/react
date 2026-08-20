@@ -4,9 +4,33 @@ export interface ProjectMember {
 }
 
 export type ProjectStatus = "Active" | "Completed" | "Scheduled" | "Pending" | "On Hold";
+export type ProjectPriority = "Low" | "Medium" | "High";
 
-// PMBOK-style project lifecycle phases
-export type ProjectPhase = "Initiation" | "Planning" | "Execution" | "Monitoring & Control" | "Closure";
+// Phase is free-form text now (not a fixed union) so new/custom phases can be
+// added from the UI. `defaultPhases` is just the suggested starting sequence.
+export type ProjectPhase = string;
+
+export const defaultPhases: string[] = [
+    "Initiation",
+    "Planning",
+    "Execution",
+    "Monitoring & Control",
+    "Closure",
+];
+
+// Kept for backward compatibility with earlier code (same list as defaultPhases).
+export const projectPhases: string[] = defaultPhases;
+
+const phaseColors: Record<string, string> = {
+    Initiation: "secondary",
+    Planning: "info",
+    Execution: "primary",
+    "Monitoring & Control": "warning",
+    Closure: "success",
+};
+
+// Any custom/unknown phase falls back to "dark" so it still renders a badge.
+export const getPhaseColor = (phase: string) => phaseColors[phase] ?? "dark";
 
 export const projectCategories = [
     "Web Development",
@@ -18,13 +42,42 @@ export const projectCategories = [
 ] as const;
 export type ProjectCategory = typeof projectCategories[number];
 
-export const projectPhases: ProjectPhase[] = [
-    "Initiation",
-    "Planning",
-    "Execution",
-    "Monitoring & Control",
-    "Closure",
-];
+// A budget line item — planned cost, added during the Planning phase.
+// budgetCost for a project = sum of all its BudgetItem amounts.
+export interface BudgetItem {
+    id: number;
+    category: string;
+    description: string;
+    amount: number;
+}
+
+// A real expense — logged as money actually gets spent, during Execution.
+// actualCost for a project = sum of all its Expense amounts.
+export interface Expense {
+    id: number;
+    date: string;
+    category: string;
+    amount: number;
+    note: string;
+}
+
+// A key checkpoint/deliverable inside the project timeline.
+export interface Milestone {
+    id: number;
+    title: string;
+    dueDate: string;
+    completed: boolean;
+}
+
+export const costCategories = [
+    "Labor",
+    "Software & Tools",
+    "Marketing",
+    "Equipment",
+    "Travel",
+    "Training",
+    "Miscellaneous",
+] as const;
 
 export interface Project {
     id?: number;
@@ -35,6 +88,7 @@ export interface Project {
     category: ProjectCategory;
     phase: ProjectPhase;
     status: ProjectStatus;
+    priority: ProjectPriority;
 
     // Planned (expected) timeline
     expectedStartDate: string;
@@ -44,15 +98,26 @@ export interface Project {
     actualStartDate: string;
     actualEndDate: string;
 
-    // Budget tracking
-    budgetCost: number;
-    actualCost: number;
+    // Budget/cost are NOT typed in as one number — they are built up from
+    // line items and expense entries, and totalled with getBudgetTotal /
+    // getActualCostTotal below. This mirrors how a real project tracks money.
+    budgetItems: BudgetItem[];
+    expenses: Expense[];
+
+    milestones: Milestone[];
 
     description?: string;
     members: ProjectMember[];
     totalTasks: number;
     completedTasks: number;
 }
+
+// Sum helpers — always compute totals from the line items, never store a flat total.
+export const getBudgetTotal = (project: Project) =>
+    project.budgetItems.reduce((sum, item) => sum + item.amount, 0);
+
+export const getActualCostTotal = (project: Project) =>
+    project.expenses.reduce((sum, expense) => sum + expense.amount, 0);
 
 export const defaultProject: Project = {
     name: "",
@@ -62,12 +127,14 @@ export const defaultProject: Project = {
     category: "Web Development",
     phase: "Initiation",
     status: "Pending",
+    priority: "Medium",
     expectedStartDate: "",
     expectedEndDate: "",
     actualStartDate: "",
     actualEndDate: "",
-    budgetCost: 0,
-    actualCost: 0,
+    budgetItems: [],
+    expenses: [],
+    milestones: [],
     description: "",
     members: [],
     totalTasks: 0,
@@ -85,12 +152,27 @@ export const dummyProjects: Project[] = [
         category: "Web Development",
         phase: "Execution",
         status: "Active",
+        priority: "High",
         expectedStartDate: "2026-06-01",
         expectedEndDate: "2026-09-15",
         actualStartDate: "2026-06-03",
         actualEndDate: "",
-        budgetCost: 450000,
-        actualCost: 210000,
+        budgetItems: [
+            { id: 1, category: "Labor", description: "Developer & designer fees", amount: 320000 },
+            { id: 2, category: "Software & Tools", description: "Licenses & subscriptions", amount: 50000 },
+            { id: 3, category: "Miscellaneous", description: "Contingency (10%)", amount: 80000 },
+        ],
+        expenses: [
+            { id: 1, date: "2026-06-05", category: "Software & Tools", amount: 45000, note: "Figma + Jetbrains annual license" },
+            { id: 2, date: "2026-07-10", category: "Labor", amount: 150000, note: "Milestone 1 developer payment" },
+            { id: 3, date: "2026-08-01", category: "Labor", amount: 15000, note: "Overtime for sprint 3" },
+        ],
+        milestones: [
+            { id: 1, title: "Requirement sign-off", dueDate: "2026-06-10", completed: true },
+            { id: 2, title: "UI design approved", dueDate: "2026-07-01", completed: true },
+            { id: 3, title: "Beta release", dueDate: "2026-08-25", completed: false },
+            { id: 4, title: "Final delivery", dueDate: "2026-09-15", completed: false },
+        ],
         description: "Internal admin dashboard rebuild using Angular 18 and NGRX.",
         members: [
             { name: "Lilian Fuller", avatar: "5.png" },
@@ -109,12 +191,27 @@ export const dummyProjects: Project[] = [
         category: "Web Development",
         phase: "Closure",
         status: "Completed",
+        priority: "Medium",
         expectedStartDate: "2026-03-01",
         expectedEndDate: "2026-06-01",
         actualStartDate: "2026-03-01",
         actualEndDate: "2026-05-28",
-        budgetCost: 600000,
-        actualCost: 580000,
+        budgetItems: [
+            { id: 1, category: "Labor", description: "Full-stack development", amount: 500000 },
+            { id: 2, category: "Software & Tools", description: "Cloud hosting & CI/CD", amount: 60000 },
+            { id: 3, category: "Miscellaneous", description: "Contingency", amount: 40000 },
+        ],
+        expenses: [
+            { id: 1, date: "2026-03-15", category: "Software & Tools", amount: 30000, note: "AWS setup" },
+            { id: 2, date: "2026-04-20", category: "Labor", amount: 400000, note: "Developer payments (2 installments)" },
+            { id: 3, date: "2026-05-25", category: "Software & Tools", amount: 25000, note: "Final month hosting + domain" },
+            { id: 4, date: "2026-05-27", category: "Miscellaneous", amount: 125000, note: "Client-requested extra revisions" },
+        ],
+        milestones: [
+            { id: 1, title: "MVP release", dueDate: "2026-04-15", completed: true },
+            { id: 2, title: "UAT sign-off", dueDate: "2026-05-20", completed: true },
+            { id: 3, title: "Production launch", dueDate: "2026-05-28", completed: true },
+        ],
         description: "Client-facing project management system built with React + TypeScript.",
         members: [
             { name: "Lilian Fuller", avatar: "5.png" },
@@ -132,12 +229,21 @@ export const dummyProjects: Project[] = [
         category: "Web Development",
         phase: "Planning",
         status: "Scheduled",
+        priority: "Medium",
         expectedStartDate: "2026-09-20",
         expectedEndDate: "2026-11-20",
         actualStartDate: "",
         actualEndDate: "",
-        budgetCost: 300000,
-        actualCost: 0,
+        budgetItems: [
+            { id: 1, category: "Labor", description: "Frontend migration work", amount: 220000 },
+            { id: 2, category: "Software & Tools", description: "Testing tools", amount: 30000 },
+            { id: 3, category: "Miscellaneous", description: "Contingency", amount: 50000 },
+        ],
+        expenses: [],
+        milestones: [
+            { id: 1, title: "Migration plan approved", dueDate: "2026-09-25", completed: false },
+            { id: 2, title: "Storefront pages migrated", dueDate: "2026-10-25", completed: false },
+        ],
         description: "E-commerce storefront migration to Vue 3 composition API.",
         members: [
             { name: "Christina Parker", avatar: "7.png" },
@@ -154,12 +260,21 @@ export const dummyProjects: Project[] = [
         category: "Marketing",
         phase: "Initiation",
         status: "Pending",
+        priority: "Low",
         expectedStartDate: "2026-08-10",
         expectedEndDate: "2026-08-30",
         actualStartDate: "",
         actualEndDate: "",
-        budgetCost: 120000,
-        actualCost: 15000,
+        budgetItems: [
+            { id: 1, category: "Labor", description: "Design & frontend fixes", amount: 90000 },
+            { id: 2, category: "Miscellaneous", description: "Contingency", amount: 30000 },
+        ],
+        expenses: [
+            { id: 1, date: "2026-08-05", category: "Labor", amount: 15000, note: "Initial design draft" },
+        ],
+        milestones: [
+            { id: 1, title: "Kickoff meeting", dueDate: "2026-08-10", completed: true },
+        ],
         description: "Marketing site refresh using Bootstrap 5 utility classes.",
         members: [
             { name: "Lilian Fuller", avatar: "5.png" },

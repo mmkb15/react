@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link } from "react-router"
-import { dummyProjects, type Project } from "../../../interfaces/Project"
+import { dummyProjects, getActualCostTotal, getBudgetTotal, getPhaseColor, type Project } from "../../../interfaces/Project"
 import ProjectCreate from "./ProjectCreate"
 
 const statusBadge: Record<Project["status"], string> = {
@@ -11,21 +11,22 @@ const statusBadge: Record<Project["status"], string> = {
     "On Hold": "secondary",
 }
 
-const phaseBadge: Record<Project["phase"], string> = {
-    Initiation: "secondary",
-    Planning: "info",
-    Execution: "primary",
-    "Monitoring & Control": "warning",
-    Closure: "success",
-}
-
-const formatMoney = (value: number) => `${value.toLocaleString("en-US")}`;
+const formatMoney = (value: number) => `৳${value.toLocaleString("en-US")}`;
 
 function ProjectList() {
 
     const [projects, setProjects] = useState<Project[]>(dummyProjects);
     const [showModal, setShowModal] = useState(false);
     const [editingProject, setEditingProject] = useState<Project | null>(null);
+    const [feedback, setFeedback] = useState<string | null>(null);
+
+    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState("All");
+
+    const showFeedback = (message: string) => {
+        setFeedback(message);
+        setTimeout(() => setFeedback(null), 3000);
+    }
 
     const handleAddNew = () => {
         setEditingProject(null);
@@ -42,6 +43,7 @@ function ProjectList() {
         const ok = window.confirm("Delete this project? This action cannot be undone.");
         if (ok) {
             setProjects((prev) => prev.filter((p) => p.id !== id));
+            showFeedback("Project deleted.");
         }
     }
 
@@ -49,13 +51,25 @@ function ProjectList() {
         if (project.id) {
             // Edit existing
             setProjects((prev) => prev.map((p) => (p.id === project.id ? project : p)));
+            showFeedback("Project updated successfully.");
         } else {
             // Create new (dummy incremental id)
             const nextId = Math.max(0, ...projects.map((p) => p.id ?? 0)) + 1;
             setProjects((prev) => [...prev, { ...project, id: nextId }]);
+            showFeedback("Project created successfully.");
         }
         setShowModal(false);
     }
+
+    // Search by name/client, filter by status — recomputed on every render,
+    // cheap enough for this list size (no need for useMemo here).
+    const filteredProjects = projects.filter((project) => {
+        const matchesSearch =
+            project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            project.client.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = statusFilter === "All" || project.status === statusFilter;
+        return matchesSearch && matchesStatus;
+    });
 
     return (
         <>
@@ -72,9 +86,45 @@ function ProjectList() {
                     </button>
                 </div>
 
+                {feedback && (
+                    <div className="alert alert-success d-flex align-items-center mb-4" role="alert">
+                        <i className="icon-base ti tabler-circle-check me-2"></i>
+                        {feedback}
+                    </div>
+                )}
+
                 {/* <!-- Projects List Table --> */}
                 <div className="card">
-                    <h5 className="card-header">All Projects</h5>
+                    <div className="card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+                        <h5 className="mb-0">All Projects</h5>
+                        <div className="d-flex flex-wrap gap-2">
+                            <div className="input-group input-group-merge" style={{ maxWidth: "240px" }}>
+                                <span className="input-group-text">
+                                    <i className="icon-base ti tabler-search"></i>
+                                </span>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Search project or client"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <select
+                                className="form-select"
+                                style={{ maxWidth: "160px" }}
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                            >
+                                <option value="All">All Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Scheduled">Scheduled</option>
+                                <option value="Pending">Pending</option>
+                                <option value="On Hold">On Hold</option>
+                            </select>
+                        </div>
+                    </div>
                     <div className="table-responsive text-nowrap">
                         <table className="table">
                             <thead>
@@ -91,10 +141,12 @@ function ProjectList() {
                                 </tr>
                             </thead>
                             <tbody className="table-border-bottom-0">
-                                {projects.map((project) => {
+                                {filteredProjects.map((project) => {
                                     const progress = project.totalTasks
                                         ? Math.round((project.completedTasks / project.totalTasks) * 100)
                                         : 0;
+                                    const budget = getBudgetTotal(project);
+                                    const actual = getActualCostTotal(project);
                                     return (
                                         <tr key={project.id}>
                                             <td>
@@ -106,7 +158,7 @@ function ProjectList() {
                                             <td>{project.client}</td>
                                             <td>{project.category}</td>
                                             <td>
-                                                <span className={`badge bg-label-${phaseBadge[project.phase]}`}>
+                                                <span className={`badge bg-label-${getPhaseColor(project.phase)}`}>
                                                     {project.phase}
                                                 </span>
                                             </td>
@@ -128,10 +180,10 @@ function ProjectList() {
                                                 </ul>
                                             </td>
                                             <td>
-                                                <span className={project.actualCost > project.budgetCost ? "text-danger" : "text-heading"}>
-                                                    {formatMoney(project.actualCost)}
+                                                <span className={actual > budget ? "text-danger" : "text-heading"}>
+                                                    {formatMoney(actual)}
                                                 </span>
-                                                <span className="text-body-secondary"> / {formatMoney(project.budgetCost)}</span>
+                                                <span className="text-body-secondary"> / {formatMoney(budget)}</span>
                                             </td>
                                             <td>
                                                 <div className="d-flex align-items-center">
@@ -186,10 +238,12 @@ function ProjectList() {
                                         </tr>
                                     );
                                 })}
-                                {projects.length === 0 && (
+                                {filteredProjects.length === 0 && (
                                     <tr>
                                         <td colSpan={9} className="text-center py-4 text-body-secondary">
-                                            No projects yet. Click "Add New Project" to create one.
+                                            {projects.length === 0
+                                                ? "No projects yet. Click \"Add New Project\" to create one."
+                                                : "No projects match your search/filter."}
                                         </td>
                                     </tr>
                                 )}

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { dummyTasks, type Task } from "../../../interfaces/Task"
+import { dummyTasks, taskStatuses, type Task } from "../../../interfaces/Task"
 import TaskCreate from "./TaskCreate"
 
 const statusBadge: Record<Task["status"], string> = {
@@ -20,6 +20,15 @@ function TaskList() {
     const [tasks, setTasks] = useState<Task[]>(dummyTasks);
     const [showModal, setShowModal] = useState(false);
     const [editingTask, setEditingTask] = useState<Task | null>(null);
+    const [feedback, setFeedback] = useState<string | null>(null);
+
+    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState("All");
+
+    const showFeedback = (message: string) => {
+        setFeedback(message);
+        setTimeout(() => setFeedback(null), 3000);
+    }
 
     const handleAddNew = () => {
         setEditingTask(null);
@@ -36,18 +45,29 @@ function TaskList() {
         const ok = window.confirm("Delete this task? This action cannot be undone.");
         if (ok) {
             setTasks((prev) => prev.filter((t) => t.id !== id));
+            showFeedback("Task deleted.");
         }
     }
 
     const handleSave = (task: Task) => {
         if (task.id) {
             setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
+            showFeedback("Task updated successfully.");
         } else {
             const nextId = Math.max(0, ...tasks.map((t) => t.id ?? 0)) + 1;
             setTasks((prev) => [...prev, { ...task, id: nextId }]);
+            showFeedback("Task created successfully.");
         }
         setShowModal(false);
     }
+
+    const filteredTasks = tasks.filter((task) => {
+        const matchesSearch =
+            task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            task.projectName.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = statusFilter === "All" || task.status === statusFilter;
+        return matchesSearch && matchesStatus;
+    });
 
     return (
         <>
@@ -66,9 +86,43 @@ function TaskList() {
                     </div>
                 </div>
 
+                {feedback && (
+                    <div className="alert alert-success d-flex align-items-center mb-4" role="alert">
+                        <i className="icon-base ti tabler-circle-check me-2"></i>
+                        {feedback}
+                    </div>
+                )}
+
                 {/* <!-- Tasks List Table --> */}
                 <div className="card">
-                    <h5 className="card-header">All Tasks</h5>
+                    <div className="card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+                        <h5 className="mb-0">All Tasks</h5>
+                        <div className="d-flex flex-wrap gap-2">
+                            <div className="input-group input-group-merge" style={{ maxWidth: "220px" }}>
+                                <span className="input-group-text">
+                                    <i className="icon-base ti tabler-search"></i>
+                                </span>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Search task or project"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <select
+                                className="form-select"
+                                style={{ maxWidth: "160px" }}
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                            >
+                                <option value="All">All Status</option>
+                                {taskStatuses.map((status) => (
+                                    <option key={status} value={status}>{status}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
                     <div className="table-responsive text-nowrap">
                         <table className="table">
                             <thead>
@@ -83,7 +137,7 @@ function TaskList() {
                                 </tr>
                             </thead>
                             <tbody className="table-border-bottom-0">
-                                {tasks.map((task) => (
+                                {filteredTasks.map((task) => (
                                     <tr key={task.id}>
                                         <td className="fw-medium text-heading">{task.title}</td>
                                         <td>{task.projectName}</td>
@@ -143,10 +197,12 @@ function TaskList() {
                                         </td>
                                     </tr>
                                 ))}
-                                {tasks.length === 0 && (
+                                {filteredTasks.length === 0 && (
                                     <tr>
                                         <td colSpan={7} className="text-center py-4 text-body-secondary">
-                                            No tasks yet. Click "Add New Task" to create one.
+                                            {tasks.length === 0
+                                                ? "No tasks yet. Click \"Add New Task\" to create one."
+                                                : "No tasks match your search/filter."}
                                         </td>
                                     </tr>
                                 )}

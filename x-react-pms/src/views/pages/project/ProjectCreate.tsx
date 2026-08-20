@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { defaultProject, projectCategories, projectPhases, type Project } from "../../../interfaces/Project"
+import { defaultProject, defaultPhases, projectCategories, type Project } from "../../../interfaces/Project"
 
 function ProjectCreate({
     project,
@@ -14,11 +14,8 @@ function ProjectCreate({
     const [form, setForm] = useState<Project>(project ?? defaultProject);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value, type } = e.target;
-        setForm((prev) => ({
-            ...prev,
-            [name]: type === "number" ? Number(value) : value,
-        }));
+        const { name, value } = e.target;
+        setForm((prev) => ({ ...prev, [name]: value }));
     }
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -41,7 +38,9 @@ function ProjectCreate({
                             <div className="text-center mb-4">
                                 <h4 className="mb-1">{project ? "Edit Project" : "Add New Project"}</h4>
                                 <p className="text-body-secondary">
-                                    {project ? "Update the project details below." : "Fill in the details to create a new project."}
+                                    {project
+                                        ? "Update the project details below."
+                                        : "Start with the basics — budget and expenses can be added from the project's details page once planning begins."}
                                 </p>
                             </div>
                             <form onSubmit={handleSubmit}>
@@ -78,7 +77,7 @@ function ProjectCreate({
                                             required
                                         />
                                     </div>
-                                    <div className="col-12 col-md-6">
+                                    <div className="col-12 col-md-4">
                                         <label className="form-label" htmlFor="category">Project Category</label>
                                         <select
                                             id="category"
@@ -92,18 +91,38 @@ function ProjectCreate({
                                             ))}
                                         </select>
                                     </div>
-                                    <div className="col-12 col-md-6">
+                                    <div className="col-12 col-md-4">
                                         <label className="form-label" htmlFor="phase">Project Phase</label>
-                                        <select
+                                        <input
+                                            type="text"
                                             id="phase"
                                             name="phase"
-                                            className="form-select"
+                                            className="form-control"
+                                            list="phase-options"
+                                            placeholder="e.g. Planning"
                                             value={form.phase}
                                             onChange={handleChange}
-                                        >
-                                            {projectPhases.map((phase) => (
-                                                <option key={phase} value={phase}>{phase}</option>
+                                            required
+                                        />
+                                        <datalist id="phase-options">
+                                            {defaultPhases.map((phase) => (
+                                                <option key={phase} value={phase} />
                                             ))}
+                                        </datalist>
+                                        <div className="form-text">Pick a suggestion or type a custom phase name.</div>
+                                    </div>
+                                    <div className="col-12 col-md-4">
+                                        <label className="form-label" htmlFor="priority">Priority</label>
+                                        <select
+                                            id="priority"
+                                            name="priority"
+                                            className="form-select"
+                                            value={form.priority}
+                                            onChange={handleChange}
+                                        >
+                                            <option value="Low">Low</option>
+                                            <option value="Medium">Medium</option>
+                                            <option value="High">High</option>
                                         </select>
                                     </div>
                                     <div className="col-12">
@@ -175,39 +194,6 @@ function ProjectCreate({
                                         <div className="form-text">Leave empty if the project hasn't actually finished yet.</div>
                                     </div>
 
-                                    {/* Budget */}
-                                    <div className="col-12 mt-4">
-                                        <h6 className="text-uppercase text-body-secondary mb-0">Budget</h6>
-                                        <hr className="mt-2 mb-0" />
-                                    </div>
-                                    <div className="col-12 col-md-6">
-                                        <label className="form-label" htmlFor="budgetCost">Budget Cost ($)</label>
-                                        <input
-                                            type="number"
-                                            id="budgetCost"
-                                            name="budgetCost"
-                                            className="form-control"
-                                            placeholder="0"
-                                            min={0}
-                                            value={form.budgetCost}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    <div className="col-12 col-md-6">
-                                        <label className="form-label" htmlFor="actualCost">Actual Cost (৳)</label>
-                                        <input
-                                            type="number"
-                                            id="actualCost"
-                                            name="actualCost"
-                                            className="form-control"
-                                            placeholder="0"
-                                            min={0}
-                                            value={form.actualCost}
-                                            onChange={handleChange}
-                                        />
-                                        <div className="form-text">Amount spent so far on this project.</div>
-                                    </div>
-
                                     {/* Description */}
                                     <div className="col-12 mt-4">
                                         <label className="form-label" htmlFor="description">Description</label>
@@ -221,6 +207,20 @@ function ProjectCreate({
                                             onChange={handleChange}
                                         ></textarea>
                                     </div>
+
+                                    {!project && (
+                                        <div className="col-12">
+                                            <div className="alert alert-info mb-0 d-flex align-items-start">
+                                                <i className="icon-base ti tabler-info-circle me-2 mt-1"></i>
+                                                <div>
+                                                    Budget items, expenses and milestones are added from the project's
+                                                    <strong> details page</strong> once you open it — that mirrors how a
+                                                    real project is planned and tracked over time, instead of typing one
+                                                    lump-sum budget upfront.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <div className="col-12 text-center mt-4">
                                         <button type="submit" className="btn btn-primary me-2">
