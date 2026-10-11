@@ -1,0 +1,138 @@
+import { useEffect, useState } from "react";
+import type { Role } from "../../interfaces/Role";
+import { api } from "../../api";
+import { defaultUser, errorUser, type User } from "../../interfaces/User";
+import { useNavigate, useParams } from "react-router";
+
+function EditUser() {
+    const [roles, setRoles] = useState<Role[]>([]);
+    // const [user, setUser]   = useState<User>(defaultUser);
+    const [errUser, setErrUser] = useState(errorUser);
+    const navigate =useNavigate();
+    // const { id } = useParams();
+
+    
+    // const getUser = () => {
+    //     api.get(`users/${id}`)
+    //         .then(function(res){
+    //             console.log(res.data.data);
+    //             console.log(res.data.data);
+    //         })
+    //         .catch(function(err){
+    //             console.log(err);
+    //         })
+    // }
+    const {id} = useParams();
+    const [user, setUser]   = useState(defaultUser);
+    const getItem = () => {
+        api
+            .get(`users/${id}`)
+            .then(function (res) {
+                console.log(res.data.user);
+                setUser(res.data.user);
+            })
+            .catch(function(err){
+                console.log(err);
+            })
+    };
+
+    const getRole = ()=>{
+        api.get('roles')
+        .then(function(res){
+            // console.log(res.data.data);
+            setRoles(res.data.data);
+        })
+        .catch(function(err){
+            console.log(err);
+        })
+    }
+    useEffect(()=>{
+        getRole();
+        getItem();
+        // getUser();
+    },[])
+
+
+    const handleSubmit = () =>{
+        // console.log(user);
+        api.put(`users/${id}`, user)
+        .then(function(res){
+            console.log(res.data.success);
+            if(res.data.success){
+                alert(res.data.success);
+                // setUser(defaultUser);
+                // setErrUser(errorUser);
+                navigate('/users');
+            }
+        })
+        .catch(function(err){
+            // console.log(err.response.status);
+            if(err.response.status === 422){
+                // console.log(err.response.data.errors);
+                // console.log(err.response.data.errors.email);
+                // console.log(err.response.data.errors.name);
+                // console.log(err.response.data.errors.role_id);
+                // console.log(err.response.data.errors.password);
+                // console.log(err.response.data.errors.password_confirmation);
+                setErrUser(err.response.data.errors);
+            }
+        })
+    }
+
+
+    return ( 
+        <>
+        <div className="w-1/2 mx-auto mt-0">
+
+        <h2 className="text-center font-bold text-2xl text-green-800 my-4">Edit User</h2>
+        
+        <form>
+            <label>Name</label>
+            <input
+            type="text"
+            className="w-full p-2 border border-1 focus:border-2 rounded-md border-gray-200 focus:border-green-400 focus:outline-none"
+            placeholder="Name"
+            value={user.name} onChange={(e)=> setUser({...user, name: e.target.value})}
+            />
+            <small className="text-red-500">{errUser.name ? errUser.name[0] : ''}</small>
+            <br />
+            <br />
+            <label>Email</label>
+            <input
+            type="text"
+            className="w-full p-2 border border-1 focus:border-2 rounded-md border-gray-200 focus:border-green-400 focus:outline-none"
+            placeholder="Email"
+            value={user.email} onChange={(e)=> setUser({...user, email: e.target.value})}
+            />
+            <small className="text-red-500">{errUser.email ? errUser.email[0] : ''}</small>
+            <br />
+            <br />
+            <label>Role</label>
+            <select value={user.role_id} onChange={(e) => setUser({...user, role_id: Number(e.target.value)})} className='w-full p-2 border border-1 focus:border-2 rounded-md border-gray-200 focus:border-green-400 focus:outline-none'>
+                <option value="0" disabled>Select role</option>
+                {roles.map((role)=>(
+                    <option key={role.id} value={role.id}>{role.name}</option>
+                    
+                ))}
+            </select>
+            <small className="text-red-500">{errUser.role_id ? errUser.role_id[0] : ''}</small>
+            <br />
+            <br />
+            
+            <div className="text-center">
+                <button
+                    className="bg-emerald-600 rounded-lg text-gray-50 py-2 px-4 hover:bg-emerald-800 focus:bg-emerald-600 duration-300 mb-5"
+                    type="button"
+                    onClick={handleSubmit}
+                >
+                    Update
+                </button>
+            </div>
+        </form>
+
+        </div>
+        </>
+    )
+}
+
+export default EditUser;

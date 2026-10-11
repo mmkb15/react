@@ -1,0 +1,200 @@
+import { useState } from "react"
+import { dummyMembers, type Member } from "../../../interfaces/Member"
+import MemberCreate from "./MemberCreate"
+
+function MemberList() {
+
+    const [members, setMembers] = useState<Member[]>(dummyMembers);
+    const [showModal, setShowModal] = useState(false);
+    const [editingMember, setEditingMember] = useState<Member | null>(null);
+    const [feedback, setFeedback] = useState<string | null>(null);
+
+    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState("All");
+
+    const showFeedback = (message: string) => {
+        setFeedback(message);
+        setTimeout(() => setFeedback(null), 3000);
+    }
+
+    const handleAddNew = () => {
+        setEditingMember(null);
+        setShowModal(true);
+    }
+
+    const handleEdit = (member: Member) => {
+        setEditingMember(member);
+        setShowModal(true);
+    }
+
+    const handleDelete = (id?: number) => {
+        if (!id) return;
+        const ok = window.confirm("Remove this member? This action cannot be undone.");
+        if (ok) {
+            setMembers((prev) => prev.filter((m) => m.id !== id));
+            showFeedback("Member removed.");
+        }
+    }
+
+    const handleSave = (member: Member) => {
+        if (member.id) {
+            setMembers((prev) => prev.map((m) => (m.id === member.id ? member : m)));
+            showFeedback("Member updated successfully.");
+        } else {
+            const nextId = Math.max(0, ...members.map((m) => m.id ?? 0)) + 1;
+            setMembers((prev) => [...prev, { ...member, id: nextId }]);
+            showFeedback("Member added successfully.");
+        }
+        setShowModal(false);
+    }
+
+    const filteredMembers = members.filter((member) => {
+        const matchesSearch =
+            member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            member.role.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = statusFilter === "All" || member.status === statusFilter;
+        return matchesSearch && matchesStatus;
+    });
+
+    return (
+        <>
+            <div className="container-xxl flex-grow-1 container-p-y">
+
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 className="mb-1">Members</h4>
+                        <p className="mb-0 text-body-secondary">Everyone working across your projects.</p>
+                    </div>
+                    <button type="button" className="btn btn-primary" onClick={handleAddNew}>
+                        <i className="icon-base ti tabler-plus me-1"></i>
+                        Add New Member
+                    </button>
+                </div>
+
+                {feedback && (
+                    <div className="alert alert-success d-flex align-items-center mb-4" role="alert">
+                        <i className="icon-base ti tabler-circle-check me-2"></i>
+                        {feedback}
+                    </div>
+                )}
+
+                {/* <!-- Members List Table --> */}
+                <div className="card">
+                    <div className="card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+                        <h5 className="mb-0">All Members</h5>
+                        <div className="d-flex flex-wrap gap-2">
+                            <div className="input-group input-group-merge" style={{ maxWidth: "240px" }}>
+                                <span className="input-group-text">
+                                    <i className="icon-base ti tabler-search"></i>
+                                </span>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Search name, email or role"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <select
+                                className="form-select"
+                                style={{ maxWidth: "150px" }}
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                            >
+                                <option value="All">All Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="table-responsive text-nowrap">
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th>Member</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Projects</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="table-border-bottom-0">
+                                {filteredMembers.map((member) => (
+                                    <tr key={member.id}>
+                                        <td>
+                                            <div className="d-flex align-items-center">
+                                                <div className="avatar avatar-sm me-3">
+                                                    <img
+                                                        src={`../../assets/img/avatars/${member.avatar}`}
+                                                        alt="Avatar"
+                                                        className="rounded-circle"
+                                                    />
+                                                </div>
+                                                <span className="fw-medium text-heading">{member.name}</span>
+                                            </div>
+                                        </td>
+                                        <td>{member.email}</td>
+                                        <td>{member.role}</td>
+                                        <td>{member.projectsCount}</td>
+                                        <td>
+                                            <span className={`badge bg-label-${member.status === "Active" ? "success" : "secondary"}`}>
+                                                {member.status}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div className="dropdown">
+                                                <button
+                                                    type="button"
+                                                    className="btn p-0 dropdown-toggle hide-arrow"
+                                                    data-bs-toggle="dropdown"
+                                                >
+                                                    <i className="icon-base ti tabler-dots-vertical"></i>
+                                                </button>
+                                                <div className="dropdown-menu">
+                                                    <a
+                                                        className="dropdown-item waves-effect"
+                                                        href="javascript:void(0);"
+                                                        onClick={() => handleEdit(member)}
+                                                    >
+                                                        <i className="icon-base ti tabler-pencil me-1"></i> Edit
+                                                    </a>
+                                                    <a
+                                                        className="dropdown-item waves-effect"
+                                                        href="javascript:void(0);"
+                                                        onClick={() => handleDelete(member.id)}
+                                                    >
+                                                        <i className="icon-base ti tabler-trash me-1"></i> Remove
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {filteredMembers.length === 0 && (
+                                    <tr>
+                                        <td colSpan={6} className="text-center py-4 text-body-secondary">
+                                            {members.length === 0
+                                                ? "No members yet. Click \"Add New Member\" to add one."
+                                                : "No members match your search/filter."}
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {showModal && (
+                <MemberCreate
+                    member={editingMember}
+                    onClose={() => setShowModal(false)}
+                    onSave={handleSave}
+                />
+            )}
+        </>
+    )
+}
+export default MemberList

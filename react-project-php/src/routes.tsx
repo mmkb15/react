@@ -14,24 +14,34 @@ import PostDetails from "./views/pages/post/PostDetails";
 import ProductCreate from "./views/pages/product/ProductCreate";
 import ProductManage from "./views/pages/product/ProductManage";
 
+// Login Functions
+import { loggedIn, needToLogin } from "./utils/auth.ts";
+
+
+
+
 export const routes = createBrowserRouter([
   {
     path: "/",
     element: <App />,
+    loader: needToLogin,
     children: [
       {
         path: "/",
-        element: <Dashboard />
+        element: <Dashboard />,
+        loader: needToLogin,
       },
 
       // User
       {
         path: "/user",
-        element: <UserManage />
+        element: <UserManage />,
+        loader: needToLogin,
       },
       {
         path: "/user-create",
-        element: <UserCreate />
+        element: <UserCreate />,
+        loader: needToLogin,
       },
       {
         path: "/user-edit/:id",
@@ -39,41 +49,49 @@ export const routes = createBrowserRouter([
       },
       {
         path: "/user-details/:id",
-        element: <UserDetails />
+        element: <UserDetails />,
+        loader: needToLogin,
       },
 
       // Prodcut
       {
         path: "/product",
-        element: <ProductManage />
+        element: <ProductManage />,
+        loader: needToLogin,
       },
       {
         path: "/product-create",
-        element: <ProductCreate />
+        element: <ProductCreate />,
+        loader: needToLogin,
       },
 
       // Post
       {
         path: "/post",
-        element: <PostManage />
+        element: <PostManage />,
+        loader: needToLogin,
       },
       {
         path: "/post-create",
-        element: <PostCreate />
+        element: <PostCreate />,
+        loader: needToLogin,
       },
       {
         path: "/post-edit/:id",
-        element: <PostEdit />
+        element: <PostEdit />,
+        loader: needToLogin,
       },
       {
         path: "/post-details/:id",
-        element: <PostDetails />
+        element: <PostDetails />,
+        loader: needToLogin,
       },
     ]
   },
   {
     path: "/login",
-    element: <Login />
+    element: <Login />,
+    loader: loggedIn
   },
   {
     path: "*",

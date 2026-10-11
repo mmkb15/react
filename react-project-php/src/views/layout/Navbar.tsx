@@ -1,5 +1,10 @@
-import {Link} from "react-router";
+import { useNavigate } from "react-router";
 function Navbar() {
+  const navigate = useNavigate();
+  function handleLogout(){
+    localStorage.removeItem("bearer_token");
+    navigate("/login");
+  }
   return (
     <>
       <nav className="navbar admin-navbar navbar-expand bg-white">
@@ -98,9 +103,12 @@ function Navbar() {
                   <hr className="dropdown-divider" />
                 </li>
                 <li>
-                  <Link className="dropdown-item" to="/login">
+                  <a
+                   href="javascript:void(0);" 
+                   className="dropdown-item" 
+                   onClick={handleLogout}>
                     Sign out
-                  </Link>
+                  </a>
                 </li>
               </ul>
             </div>
